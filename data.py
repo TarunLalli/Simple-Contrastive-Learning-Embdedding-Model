@@ -50,10 +50,3 @@ vocab.set_default_index(vocab.__getitem__('<unk>'))
     #print(f"Index for {token}: {vocab.__getitem__(token)}")
 #Verifying unseen example
 #print(f"Index for Fake example: {vocab.__getitem__('dskjckdjcbskjc')}")
-
-#Forming training corpus
-training_corpus = []
-for line in train_text:
-    for token in tokenizer(line):
-        training_corpus.append(vocab.__getitem__(token))
-training_corpus = torch.tensor(training_corpus)
