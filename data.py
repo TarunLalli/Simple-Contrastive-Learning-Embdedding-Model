@@ -2,6 +2,7 @@ from datasets import load_dataset
 from torchtext.data import get_tokenizer
 from torchtext.vocab import build_vocab_from_iterator
 import torch
+import random
 
 #Importing dataset
 dataset = load_dataset("wikitext", "wikitext-2-raw-v1")
@@ -15,12 +16,6 @@ test_text  = dataset["test"]["text"]
 train_text = [line for line in train_text if line.strip()]
 valid_text = [line for line in valid_text if line.strip()]
 test_text  = [line for line in test_text if line.strip()]
-
-#Inspecting data
-#for line in train_text:
-#    if line.strip():   # non-empty
-#        print(line)
-#        break
 
 #Initialising tokenizer
 tokenizer = get_tokenizer("basic_english")
@@ -40,13 +35,11 @@ vocab = build_vocab_from_iterator(train_iter(), specials=["<unk>"])
 #Setting Vocab default
 vocab.set_default_index(vocab.__getitem__('<unk>'))
 
-#Inspecting vocabulary
-#Vocab length
-#print(f"Vocab Length:{vocab.__len__()}")
-#Checking <unk>
-#print(f"Index for <unk>: {vocab.__getitem__('<unk>')}")
-#Verifying 2/3 examples
-#for token in ['=', 'valkyria', 'chronicles']:
-    #print(f"Index for {token}: {vocab.__getitem__(token)}")
-#Verifying unseen example
-#print(f"Index for Fake example: {vocab.__getitem__('dskjckdjcbskjc')}")
+#Token dropout function set to p = 0.2, this value was chosen as it allows for surface level perturbations without impacting semantic consistency
+def word_dropout(tokens, p=0.2):
+    kept = [tok for tok in tokens if random.random() > p]
+    if len(kept) == 0:
+        return tokens  # safety: preserve semantics
+    return kept
+
+
