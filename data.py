@@ -35,11 +35,45 @@ vocab = build_vocab_from_iterator(train_iter(), specials=["<unk>"])
 #Setting Vocab default
 vocab.set_default_index(vocab.__getitem__('<unk>'))
 
-#Token dropout function set to p = 0.2, this value was chosen as it allows for surface level perturbations without impacting semantic consistency
-def word_dropout(tokens, p=0.2):
-    kept = [tok for tok in tokens if random.random() > p]
-    if len(kept) == 0:
-        return tokens  # safety: preserve semantics
-    return kept
+#Dataset class returns two views for an individual sample.
+class Dataset(torch.utils.data.Dataset):
+    def __init__(self,p_dropout, data, tokenizer, vocab):
+        super().__init__()
+        self.p_dropout = p_dropout
+        self.data = data
+        self.tokenizer = tokenizer
+        self.vocab = vocab
 
+    def __getitem__(self,idx):
+        #Fetching raw data/text
+        data_idx = self.data[idx]
 
+        #Tokenizing
+        data_idx = self.tokenizer(data_idx)
+
+        #Applying dropout
+        #View 1
+        data_view1 = self.word_dropout(data_idx)
+        #View 2
+        data_view2 = self.word_dropout(data_idx)
+
+        #Vocab lookups
+        #View 1
+        token_ids_view1 = [self.vocab.__getitem__(token) for token in data_view1]
+        #View 2
+        token_ids_view2 = [self.vocab.__getitem__(token) for token in data_view2]
+
+        #Returning both views
+        return token_ids_view1, token_ids_view2
+
+    def __len__(self):
+        return len(self.data)
+
+    def word_dropout(self,tokens):
+        kept = [tok for tok in tokens if random.random() > self.p_dropout]
+        if len(kept) == 0:
+            return tokens  # safety: preserve semantics
+        return kept
+
+class DataLoader():
+    ...
