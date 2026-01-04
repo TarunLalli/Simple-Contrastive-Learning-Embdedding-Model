@@ -75,5 +75,12 @@ class Dataset(torch.utils.data.Dataset):
             return tokens  # safety: preserve semantics
         return kept
 
-class DataLoader():
-    ...
+class DataLoader(torch.utils.data.DataLoader):
+    def __init__(self,dataset):
+        super().__init__()
+        self.dataset = dataset
+
+    def collate_fn(self,padded_length, batch_size): 
+    #INPUT: Expects a batched 2 dimensional tensor of shape (B,2): [(v1₁, v2₁), (v1₂, v2₂), ..., (v1_B, v2_B)]
+    #OUTPUT: Expected output will be 2 tensors of shape (B,L) where L is padded length and B is batch size
+        ...
