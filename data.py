@@ -78,9 +78,19 @@ class Dataset(torch.utils.data.Dataset):
 class DataLoader(torch.utils.data.DataLoader):
     def __init__(self,dataset):
         super().__init__()
-        self.dataset = dataset
 
-    def collate_fn(self,padded_length, batch_size): 
+    def collate_fn(batch): 
     #INPUT: Expects a batched 2 dimensional tensor of shape (B,2): [(v1₁, v2₁), (v1₂, v2₂), ..., (v1_B, v2_B)]
     #OUTPUT: Expected output will be 2 tensors of shape (B,L) where L is padded length and B is batch size
-        ...
+        views1 = [
+            sample[0]
+            for sample in batch
+        ] #views1 is of format (v1_1, v1_2, v1_3, ..., v1_B)
+        views2 = [
+            sample[1]
+            for sample in batch
+        ] #views2 is of format (v2_1, v2_2, v2_3, ..., v2_B)
+
+        L_max = len(max(views1+views2, key=len))
+
+
