@@ -75,9 +75,14 @@ class Dataset(torch.utils.data.Dataset):
             return tokens  # safety: preserve semantics
         return kept
 
-def collate_fn(self,batch): 
+def collate_fn(batch): 
     #INPUT: Expects a batched 2 dimensional tensor of shape (B,2): [(v1₁, v2₁), (v1₂, v2₂), ..., (v1_B, v2_B)]
     #OUTPUT: Expected output will be 2 tensors of shape (B,L) where L is padded length and B is batch size
+    
+    #Padding ID for later
+    pad_id = vocab["<unk>"]
+    
+    #Reorganising Batch
     views1 = [
         sample[0]
         for sample in batch
@@ -90,13 +95,19 @@ def collate_fn(self,batch):
     #Finding the greatest token id list length for padding
     L_max = len(max(views1+views2, key=len))
 
-    #Sequences padded using pad_id
-    for view in views1:
-        while len(view) < L_max:
-            view.append(self.pad_id)
-    for view in views2:
-        while len(view) < L_max:
-            view.append(self.pad_id)
+    views1_padded = [view.copy() for view in views1]
+    views2_padded = [view.copy() for view in views2]
 
+    #Sequences padded using pad_id
+    for view in views1_padded:
+        while len(view) < L_max:
+            view.append(pad_id)
+    for view in views2_padded:
+        while len(view) < L_max:
+            view.append(pad_id)
+
+    output = (torch.tensor(views1_padded, dtype=torch.int64),torch.tensor(views2_padded,dtype=torch.int64))
+
+    return output
         
 
