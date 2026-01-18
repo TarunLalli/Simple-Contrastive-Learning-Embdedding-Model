@@ -1,6 +1,8 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from NTXentLoss import NTXent
+from data import Dataset, collate_fn, train_text, valid_text, test_text
 
 class Encoder(nn.Module):
     def __init__(self, d_model, d_proj, vocab_size, pad_id):
@@ -28,6 +30,12 @@ class Encoder(nn.Module):
         h = pooled_embeddings/torch.where(true_token_lengths==0, 1,true_token_lengths) #Accounting for Divide by zero errors here by setting empty sequences to length 1.
 
         #Projection Head Block
-        z = self.ln2(F.relu(self.ln1(h))) #Applying Linear Layer -> Non-linearity -> Second Layer -> z
+        z = self.ln2(F.relu(self.ln1(h))) #Applying Linear Layer -> Non-linearity -> Second Layer -> z (B,d_proj)
 
         return h, z
+
+def main():
+    ...
+
+if __name__ == '__main__':
+    main()
