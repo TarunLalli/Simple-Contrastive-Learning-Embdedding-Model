@@ -2,7 +2,9 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from NTXentLoss import NTXent
-from data import Dataset, collate_fn, train_text, valid_text, test_text
+from data import Dataset, collate_fn, train_text, valid_text, test_text, vocab
+from torchtext.data import get_tokenizer
+from torch.utils.data import DataLoader
 
 class Encoder(nn.Module):
     def __init__(self, d_model, d_proj, vocab_size, pad_id):
@@ -35,7 +37,25 @@ class Encoder(nn.Module):
         return h, z
 
 def main():
-    ...
+    # Setting up Device
+    device = 'mps' if torch.backends.mps.is_available() else 'cpu'
+    # Flag if mps not available
+    if device == 'cpu':
+        raise Exception("GPU not available. Please run on a Mac with MPS support.")
+
+    # Initiating Dataset
+    dataset = Dataset(p_dropout = 0.2, data = train_text, tokenizer = get_tokenizer("basic_english"), vocab = vocab).to(device)
+    # Intiating DataLoader
+    dataloader = DataLoader(dataset, batch_size=64, collate_fn=collate_fn).to(device)
+    # Initiating Encoder
+    encoder = Encoder(d_model = 64, d_proj = 16, vocab_size = vocab.__len__(), pad_id = vocab.__getitem__('<unk>')).to(device)
+    # Initiating Loss Function
+    NTXentLoss = NTXent(tau=0.1).to(device)
+    # Initiating Optimiser
+    optimiser = torch.optim.Adam(params=encoder.parameters()).to(device)
+
+    
+
 
 if __name__ == '__main__':
     main()
