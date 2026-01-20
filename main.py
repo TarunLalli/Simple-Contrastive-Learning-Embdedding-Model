@@ -53,7 +53,7 @@ def main():
     # Instantiate Loss Function
     NTXentLoss = NTXent(tau=0.1)
     # Instantiate Optimiser
-    optimiser = torch.optim.Adam(params=encoder.parameters()).to(device)
+    optimiser = torch.optim.Adam(params=encoder.parameters())
     # Running training loop
     trained_encoder, losses = training_loop(dataset,dataloader,encoder,NTXentLoss,optimiser,epoch_number = 1)
 
