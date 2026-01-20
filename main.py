@@ -5,7 +5,7 @@ from NTXentLoss import NTXent
 from data import Dataset, collate_fn, train_text, valid_text, test_text, vocab
 from torchtext.data import get_tokenizer
 from torch.utils.data import DataLoader
-import tqdm
+from tqdm import tqdm
 
 class Encoder(nn.Module):
     def __init__(self, d_model, d_proj, vocab_size, pad_id):
@@ -58,9 +58,9 @@ def main():
 
 def training_loop(dataset,dataloader,encoder,NTXentLoss,optimiser,epoch_number):
     
-    for _ in epoch_number:
+    for epoch in epoch_number:
         encoder.train()
-
+        losses = []
         loop = tqdm(dataloader, leave = True)
         for batch in loop:
             views1, views2 = batch[0], batch[1] # Batched views Shape:(B, padded_length)
@@ -71,7 +71,24 @@ def training_loop(dataset,dataloader,encoder,NTXentLoss,optimiser,epoch_number):
             h1, z1 = encoder(views1)
             h2, z2 = encoder(views2)
 
-            
+            # Passing NTXentLoss funct z1 and z2 fo loss calc
+                # Input Shape z: (B, d_proj), Output Shape: (1)
+            loss = NTXentLoss(z1, z2)
+
+            # Saving loss for current batch for loss curve 
+            losses.append(loss)
+
+            # Zeroing gradients from previous loop
+            optimiser.zero_grad()
+            # Backprop Loss
+            loss.backward()
+            # Optimiser Step
+            optimiser.step() #What does this actually do? Update learning rate?
+
+            loop.set_description(f"Epoch [{epoch+1}/{epoch_number}]")
+
+    print("Training Complete.")
+
 
 
 
