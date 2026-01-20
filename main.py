@@ -44,21 +44,25 @@ def main():
     if device == 'cpu':
         raise Exception("GPU not available. Please run on a Mac with MPS support.")
 
-    # Initiating Dataset
-    dataset = Dataset(p_dropout = 0.2, data = train_text, tokenizer = get_tokenizer("basic_english"), vocab = vocab).to(device)
-    # Intiating DataLoader
-    dataloader = DataLoader(dataset, batch_size=64, collate_fn=collate_fn).to(device)
-    # Initiating Encoder
+    # Instantiate Dataset
+    dataset = Dataset(p_dropout = 0.2, data = train_text, tokenizer = get_tokenizer("basic_english"), vocab = vocab)
+    # Instantiate DataLoader
+    dataloader = DataLoader(dataset, batch_size=64, collate_fn=collate_fn)
+    # Instantiate Encoder
     encoder = Encoder(d_model = 64, d_proj = 16, vocab_size = vocab.__len__(), pad_id = vocab["<unk>"]).to(device)
-    # Initiating Loss Function
-    NTXentLoss = NTXent(tau=0.1).to(device)
-    # Initiating Optimiser
+    # Instantiate Loss Function
+    NTXentLoss = NTXent(tau=0.1)
+    # Instantiate Optimiser
     optimiser = torch.optim.Adam(params=encoder.parameters()).to(device)
+    # Running training loop
+    trained_encoder, losses = training_loop(dataset,dataloader,encoder,NTXentLoss,optimiser,epoch_number = 1)
 
 
-def training_loop(dataset,dataloader,encoder,NTXentLoss,optimiser,epoch_number):
+
+
+def training_loop(dataset,dataloader,encoder,NTXentLoss,optimiser,epoch_number,device):
     
-    for epoch in epoch_number:
+    for epoch in range(epoch_number):
         encoder.train()
         losses = []
         loop = tqdm(dataloader, leave = True)
@@ -71,23 +75,29 @@ def training_loop(dataset,dataloader,encoder,NTXentLoss,optimiser,epoch_number):
             h1, z1 = encoder(views1)
             h2, z2 = encoder(views2)
 
+            h1, z1 = h1.to(device), z1.to(device)
+            h2, z2 = h2.to(device), z2.to(device)
+
             # Passing NTXentLoss funct z1 and z2 fo loss calc
                 # Input Shape z: (B, d_proj), Output Shape: (1)
             loss = NTXentLoss(z1, z2)
 
             # Saving loss for current batch for loss curve 
-            losses.append(loss)
+            losses.append(loss.item())
 
             # Zeroing gradients from previous loop
             optimiser.zero_grad()
             # Backprop Loss
             loss.backward()
-            # Optimiser Step
-            optimiser.step() #What does this actually do? Update learning rate?
+            # Updating param values
+            optimiser.step() 
 
             loop.set_description(f"Epoch [{epoch+1}/{epoch_number}]")
 
     print("Training Complete.")
+
+    return encoder, losses
+
 
 
 
@@ -96,3 +106,16 @@ def training_loop(dataset,dataloader,encoder,NTXentLoss,optimiser,epoch_number):
 
 if __name__ == '__main__':
     main()
+
+
+
+"""
+
+NOTES:
+* Only tensors and modules live on devices, therfore cannot/should not use it on dataset and dataloader
+* When loss.backward() is run, this calculates the gradients of all the params which are then stored in param.grad() for each paramter. 
+    Optimiser.step() then uses the gradients to update the params?
+# The data/batch instances should sit on a device but this should be in the training loop not when the dataloader/set is instantiated.
+# Loss calculators and optimisers also dont sit on a device.
+
+"""
