@@ -68,6 +68,9 @@ def training_loop(dataset,dataloader,encoder,NTXentLoss,optimiser,epoch_number,d
         loop = tqdm(dataloader, leave = True)
         for batch in loop:
             views1, views2 = batch[0], batch[1] # Batched views Shape:(B, padded_length)
+
+            # Moving views1 and views2 to device
+            views1, views2 = views1.to(device), views2.to(device)
             # Passing the views to the Encoder
                 # Input Shape: (B,L) 
                 # Output Shape: z: (B, d_proj), h:(B, d_Encoder)
@@ -75,9 +78,8 @@ def training_loop(dataset,dataloader,encoder,NTXentLoss,optimiser,epoch_number,d
             h1, z1 = encoder(views1)
             h2, z2 = encoder(views2)
 
-            h1, z1 = h1.to(device), z1.to(device)
-            h2, z2 = h2.to(device), z2.to(device)
-
+            h1, z1 = h1, z1
+            h2, z2 = h2, z2
             # Passing NTXentLoss funct z1 and z2 fo loss calc
                 # Input Shape z: (B, d_proj), Output Shape: (1)
             loss = NTXentLoss(z1, z2)
