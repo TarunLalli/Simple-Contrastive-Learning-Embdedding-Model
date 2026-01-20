@@ -5,6 +5,7 @@ from NTXentLoss import NTXent
 from data import Dataset, collate_fn, train_text, valid_text, test_text, vocab
 from torchtext.data import get_tokenizer
 from torch.utils.data import DataLoader
+import tqdm
 
 class Encoder(nn.Module):
     def __init__(self, d_model, d_proj, vocab_size, pad_id):
@@ -48,13 +49,32 @@ def main():
     # Intiating DataLoader
     dataloader = DataLoader(dataset, batch_size=64, collate_fn=collate_fn).to(device)
     # Initiating Encoder
-    encoder = Encoder(d_model = 64, d_proj = 16, vocab_size = vocab.__len__(), pad_id = vocab.__getitem__('<unk>')).to(device)
+    encoder = Encoder(d_model = 64, d_proj = 16, vocab_size = vocab.__len__(), pad_id = vocab["<unk>"]).to(device)
     # Initiating Loss Function
     NTXentLoss = NTXent(tau=0.1).to(device)
     # Initiating Optimiser
     optimiser = torch.optim.Adam(params=encoder.parameters()).to(device)
 
+
+def training_loop(dataset,dataloader,encoder,NTXentLoss,optimiser,epoch_number):
     
+    for _ in epoch_number:
+        encoder.train()
+
+        loop = tqdm(dataloader, leave = True)
+        for batch in loop:
+            views1, views2 = batch[0], batch[1] # Batched views Shape:(B, padded_length)
+            # Passing the views to the Encoder
+                # Input Shape: (B,L) 
+                # Output Shape: z: (B, d_proj), h:(B, d_Encoder)
+
+            h1, z1 = encoder(views1)
+            h2, z2 = encoder(views2)
+
+            
+
+
+
 
 
 if __name__ == '__main__':
