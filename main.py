@@ -55,12 +55,12 @@ def main():
     # Instantiate Optimiser
     optimiser = torch.optim.Adam(params=encoder.parameters())
     # Running training loop
-    trained_encoder, losses = training_loop(dataset,dataloader,encoder,NTXentLoss,optimiser,epoch_number = 1)
+    trained_encoder, losses = training_loop(dataloader,encoder,NTXentLoss,optimiser,epoch_number = 1,device='mps')
 
 
 
 
-def training_loop(dataset,dataloader,encoder,NTXentLoss,optimiser,epoch_number,device):
+def training_loop(dataloader,encoder,NTXentLoss,optimiser,epoch_number,device):
     
     for epoch in range(epoch_number):
         encoder.train()
@@ -78,8 +78,6 @@ def training_loop(dataset,dataloader,encoder,NTXentLoss,optimiser,epoch_number,d
             h1, z1 = encoder(views1)
             h2, z2 = encoder(views2)
 
-            h1, z1 = h1, z1
-            h2, z2 = h2, z2
             # Passing NTXentLoss funct z1 and z2 fo loss calc
                 # Input Shape z: (B, d_proj), Output Shape: (1)
             loss = NTXentLoss(z1, z2)
@@ -99,11 +97,6 @@ def training_loop(dataset,dataloader,encoder,NTXentLoss,optimiser,epoch_number,d
     print("Training Complete.")
 
     return encoder, losses
-
-
-
-
-
 
 
 if __name__ == '__main__':
