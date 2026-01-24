@@ -57,7 +57,22 @@ def main():
     # Running training loop
     trained_encoder, losses = training_loop(dataloader,encoder,NTXentLoss,optimiser,epoch_number = 1,device='mps')
 
+    # Quick Smoke test for exploding or NaN gradients
+    print('Encoder Losses Smoke Test:')
+    print(losses[0:10])
 
+    # Saving Encoder
+    if device == 'mps':
+            torch.save(trained_encoder.state_dict(), './')
+
+    # Indexing eval dataset from training (same dataset used as no performance metrics being evaluated)
+    eval_text = train_text[:500]
+    # Instantiating eval Dataset
+    eval_dataset = Dataset(p_dropout = 0.2, data = eval_text, tokenizer = get_tokenizer("basic_english"), vocab = vocab)
+    
+
+    # Visual Eval
+    model_eval(eval_dataloader, trained_encoder)
 
 
 def training_loop(dataloader,encoder,NTXentLoss,optimiser,epoch_number,device):
@@ -97,6 +112,11 @@ def training_loop(dataloader,encoder,NTXentLoss,optimiser,epoch_number,device):
     print("Training Complete.")
 
     return encoder, losses
+
+def model_eval(eval_dataloader,trained_encoder):
+    # Setting encoder to eval mode
+    trained_encoder.eval()
+    # 
 
 
 if __name__ == '__main__':
