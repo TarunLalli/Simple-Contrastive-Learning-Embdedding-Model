@@ -6,6 +6,9 @@ from data import Dataset, collate_fn, train_text, valid_text, test_text, vocab
 from torchtext.data import get_tokenizer
 from torch.utils.data import DataLoader
 from tqdm import tqdm
+import numpy as np
+from sklearn.decomposition import PCA
+import matplotlib.pyplot as plt
 
 class Encoder(nn.Module):
     def __init__(self, d_model, d_proj, vocab_size, pad_id):
@@ -69,8 +72,8 @@ def main():
     eval_text = train_text[:500]
     # Instantiating eval Dataset
     eval_dataset = Dataset(p_dropout = 0.2, data = eval_text, tokenizer = get_tokenizer("basic_english"), vocab = vocab)
-    
-
+    # Instantiating eval DataLoader with Shuffle=False
+    eval_dataloader = DataLoader(eval_dataset, batch_size=64, collate_fn=collate_fn, shuffle=False)
     # Visual Eval
     model_eval(eval_dataloader, trained_encoder)
 
@@ -116,7 +119,34 @@ def training_loop(dataloader,encoder,NTXentLoss,optimiser,epoch_number,device):
 def model_eval(eval_dataloader,trained_encoder):
     # Setting encoder to eval mode
     trained_encoder.eval()
-    # 
+    # Forming Dataset:
+    # Looping through DataLoader, gives: (views1, views2), views have shape: (B, L)
+    for batch in DataLoader:
+        views1, views2 = batch[0], batch[1] # Shape: (B,L)
+        # Passing each instance into the encoder gives (B, d_model) for h and (B, d_proj) for z
+        h1, z1 = trained_encoder(views1) # Shape: (B, d_model)
+        h2, z2 = trained_encoder(views2) # Shape: (B, d_model)        
+        # Stacking these gives: H: (2B, d_model), Z: (2B, d_proj)
+        H = torch.cat((h1, h2), dim=0)
+        Z = torch.cat((z1, z2), dim=0)
+        # Converting H and Z to numpy arrays
+        H = torch.Tensor.numpy(H).to('cpu')
+        Z = torch.Tensor.numpy(Z).to('cpu')
+        # Instantiating PCA
+        pca = PCA(n_components=2)
+        H_PCA = pca.fit(H)
+        Z_PCA = pca.fit(Z)
+        # Plotting points
+        for index in range(len(H)/2):
+            x = [H[index][0],H[index + 64][0]]
+            y = [H[index][1],H[index + 64][1]]
+            plt.scatter(x,y)
+        # Showing plot
+        plt.show()
+        
+
+        
+
 
 
 if __name__ == '__main__':
