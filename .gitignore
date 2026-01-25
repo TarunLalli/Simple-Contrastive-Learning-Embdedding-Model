@@ -1,3 +1,6 @@
+# Specific Files
+encoder_state_dict.pt
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
