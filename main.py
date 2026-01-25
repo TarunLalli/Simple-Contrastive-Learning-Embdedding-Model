@@ -59,7 +59,7 @@ def main():
     # Instantiate Optimiser
     optimiser = torch.optim.Adam(params=encoder.parameters())
     # Running loop if param values dont exist yet
-    if os.path.exists("/encoder_state_dict.pt"):
+    if os.path.isfile("/encoder_state_dict.pt"):
         # Loading saved model
         trained_encoder = encoder.load_state_dict(torch.load('encoder_state_dict.pt'))
     else:
@@ -125,7 +125,7 @@ def model_eval(eval_dataloader,trained_encoder):
     trained_encoder.eval()
     # Forming Dataset:
     # Looping through DataLoader, gives: (views1, views2), views have shape: (B, L)
-    for batch in DataLoader:
+    for batch in eval_dataloader:
         views1, views2 = batch[0], batch[1] # Shape: (B,L)
         # Moving views1 and views2 to mps
         views1, views2 = views1.to("mps"), views2.to("mps") 
@@ -136,8 +136,8 @@ def model_eval(eval_dataloader,trained_encoder):
         H = torch.cat((h1, h2), dim=0)
         Z = torch.cat((z1, z2), dim=0)
         # Converting H and Z to numpy arrays
-        H = torch.Tensor.numpy(H).to('cpu')
-        Z = torch.Tensor.numpy(Z).to('cpu')
+        H = torch.tensor.detach().numpy(H.to("cpu")) # Checkpoint (this needs fixing)
+        Z = torch.tensor.numpy(Z.to("cpu")) 
         # Instantiating PCA
         pca = PCA(n_components=2)
         H_PCA = pca.fit(H)
