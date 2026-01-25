@@ -9,6 +9,7 @@ from tqdm import tqdm
 from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
 import numpy as np
+import os.path
 
 class Encoder(nn.Module):
     def __init__(self, d_model, d_proj, vocab_size, pad_id):
@@ -57,16 +58,19 @@ def main():
     NTXentLoss = NTXent(tau=0.1)
     # Instantiate Optimiser
     optimiser = torch.optim.Adam(params=encoder.parameters())
-    # Running training loop
-    trained_encoder, losses = training_loop(dataloader,encoder,NTXentLoss,optimiser,epoch_number = 1,device='mps')
-
-    # Quick Smoke test for exploding or NaN gradients
-    print('Encoder Losses Smoke Test:')
-    print(losses[0:10])
-
-    # Saving Encoder
-    if device == 'mps':
-            torch.save(trained_encoder.state_dict(), './')
+    # Running loop if param values dont exist yet
+    if os.path.exists("/encoder_state_dict.pt"):
+        # Loading saved model
+        trained_encoder = encoder.load_state_dict(torch.load('encoder_state_dict.pt'))
+    else:
+        # Running training loop
+        trained_encoder, losses = training_loop(dataloader,encoder,NTXentLoss,optimiser,epoch_number = 1,device='mps')
+        # Quick Smoke test for exploding or NaN gradients
+        print('Encoder Losses Smoke Test:')
+        print(losses[0:10])
+        # Saving Encoder
+        if device == 'mps':
+                torch.save(trained_encoder.state_dict(), 'encoder_state_dict.pt')
 
     # Indexing eval dataset from training (same dataset used as no performance metrics being evaluated)
     eval_text = train_text[:500]
@@ -123,6 +127,8 @@ def model_eval(eval_dataloader,trained_encoder):
     # Looping through DataLoader, gives: (views1, views2), views have shape: (B, L)
     for batch in DataLoader:
         views1, views2 = batch[0], batch[1] # Shape: (B,L)
+        # Moving views1 and views2 to mps
+        views1, views2 = views1.to("mps"), views2.to("mps") 
         # Passing each instance into the encoder gives (B, d_model) for h and (B, d_proj) for z
         h1, z1 = trained_encoder(views1) # Shape: (B, d_model)
         h2, z2 = trained_encoder(views2) # Shape: (B, d_model)        
