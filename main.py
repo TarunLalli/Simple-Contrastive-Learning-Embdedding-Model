@@ -6,9 +6,9 @@ from data import Dataset, collate_fn, train_text, valid_text, test_text, vocab
 from torchtext.data import get_tokenizer
 from torch.utils.data import DataLoader
 from tqdm import tqdm
-import numpy as np
 from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
+import numpy as np
 
 class Encoder(nn.Module):
     def __init__(self, d_model, d_proj, vocab_size, pad_id):
