@@ -155,31 +155,30 @@ def model_eval(eval_dataloader,trained_encoder):
     # Fitting and transforming H and Z
     H_np = pca_H.fit_transform(H_np)
     Z_np = pca_Z.fit_transform(Z_np)
-    # Plotting points
+    # Plotting embdedding points
     B = H_np.shape[0] // 2
     for index in range(B):
         x = [H_np[index][0],H_np[index + B][0]]
         y = [H_np[index][1],H_np[index + B][1]]
         plt.scatter(x,y)
     # Showing plot 
-    plt.show() # Checkpoint for pickup: Add title and Axis labels, Add plot for Z_np
+    plt.title("Embedding space, h, PCA Visualisation After One Training Epoch")
+    plt.xlabel("PC 1")
+    plt.ylabel("PC 2")
+    plt.show() 
+    
+    # Plotting Projection Points
+    for index in range(B):
+        x = [Z_np[index][0],Z_np[index + B][0]]
+        y = [Z_np[index][1],Z_np[index + B][1]]
+        plt.scatter(x,y)
+    # Showing plot 
+    plt.title("Projection space, z, PCA Visualisation After One Training Epoch")
+    plt.xlabel("PC 1")
+    plt.ylabel("PC 2")
+    plt.show() 
 
         
 
-
-
 if __name__ == '__main__':
     main()
-
-
-
-"""
-
-NOTES:
-* Only tensors and modules live on devices, therfore cannot/should not use it on dataset and dataloader
-* When loss.backward() is run, this calculates the gradients of all the params which are then stored in param.grad() for each paramter. 
-    Optimiser.step() then uses the gradients to update the params?
-# The data/batch instances should sit on a device but this should be in the training loop not when the dataloader/set is instantiated.
-# Loss calculators and optimisers also dont sit on a device.
-
-"""
