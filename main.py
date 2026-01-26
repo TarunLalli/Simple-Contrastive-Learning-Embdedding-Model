@@ -59,9 +59,10 @@ def main():
     # Instantiate Optimiser
     optimiser = torch.optim.Adam(params=encoder.parameters())
     # Running loop if param values dont exist yet
-    if os.path.isfile("/encoder_state_dict.pt"):
+    if os.path.isfile("./encoder_state_dict.pt"):
         # Loading saved model
-        trained_encoder = encoder.load_state_dict(torch.load('encoder_state_dict.pt'))
+        encoder.load_state_dict(torch.load('encoder_state_dict.pt'))
+        trained_encoder = encoder.to(device)
     else:
         # Running training loop
         trained_encoder, losses = training_loop(dataloader,encoder,NTXentLoss,optimiser,epoch_number = 1,device='mps')
@@ -125,31 +126,43 @@ def model_eval(eval_dataloader,trained_encoder):
     trained_encoder.eval()
     # Forming Dataset:
     # Looping through DataLoader, gives: (views1, views2), views have shape: (B, L)
-    for batch in eval_dataloader:
+    H = torch.empty((1,64)).to("mps")
+    Z = torch.empty((1,16)).to("mps")
+    for idx, batch in enumerate(eval_dataloader):
         views1, views2 = batch[0], batch[1] # Shape: (B,L)
         # Moving views1 and views2 to mps
         views1, views2 = views1.to("mps"), views2.to("mps") 
         # Passing each instance into the encoder gives (B, d_model) for h and (B, d_proj) for z
         h1, z1 = trained_encoder(views1) # Shape: (B, d_model)
-        h2, z2 = trained_encoder(views2) # Shape: (B, d_model)        
+        h2, z2 = trained_encoder(views2) # Shape: (B, d_model)
         # Stacking these gives: H: (2B, d_model), Z: (2B, d_proj)
-        H = torch.cat((h1, h2), dim=0)
-        Z = torch.cat((z1, z2), dim=0)
-        # Converting H and Z to numpy arrays
-        H = torch.tensor.detach().numpy(H.to("cpu")) # Checkpoint (this needs fixing)
-        Z = torch.tensor.numpy(Z.to("cpu")) 
-        # Instantiating PCA
-        pca = PCA(n_components=2)
-        H_PCA = pca.fit(H)
-        Z_PCA = pca.fit(Z)
-        # Plotting points
-        for index in range(len(H)/2):
-            x = [H[index][0],H[index + 64][0]]
-            y = [H[index][1],H[index + 64][1]]
-            plt.scatter(x,y)
-        # Showing plot
-        plt.show()
-        
+        h_cat = torch.cat((h1, h2), dim=0)
+        z_cat = torch.cat((z1, z2), dim=0)
+        # Stacking into big tensors
+        if idx == 0:
+            H = h_cat
+            Z = z_cat
+        else:    
+            H = torch.cat((H,h_cat), dim = 0)
+            Z = torch.cat((Z,z_cat), dim = 0)
+
+    # Converting H and Z to numpy arrays
+    H_np = H.to("cpu").detach().numpy() 
+    Z_np = Z.to("cpu").detach().numpy() 
+    # Instantiating PCA
+    pca_H = PCA(n_components=2)
+    pca_Z = PCA(n_components=2)
+    # Fitting and transforming H and Z
+    H_np = pca_H.fit_transform(H_np)
+    Z_np = pca_Z.fit_transform(Z_np)
+    # Plotting points
+    B = H_np.shape[0] // 2
+    for index in range(B):
+        x = [H_np[index][0],H_np[index + B][0]]
+        y = [H_np[index][1],H_np[index + B][1]]
+        plt.scatter(x,y)
+    # Showing plot 
+    plt.show() # Checkpoint for pickup: Add title and Axis labels, Add plot for Z_np
 
         
 
