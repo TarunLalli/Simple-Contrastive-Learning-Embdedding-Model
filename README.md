@@ -15,11 +15,11 @@ Training is done for one epoch of the training_data subset of the hugging face w
 We evaluate the performance of the contrastive learning model using PCA Component visualisation for embedding values for the first 500 data instances of the wikitext-2 training data subset. PCA is used to inspect the relative geometry not the absolute performance. As the trained encoder is not used for a downstream task there was no requirement for quantitative analysis of the model. Plots for both the embedding and projection head outputs were done using the first two principal components for each respectively. These plots are shown in figures 1 and 2.
 
 
-<img width="635" height="474" alt="Screenshot 2026-01-26 at 18 38 32" src="https://github.com/user-attachments/assets/777371ac-25f0-4af7-98a1-bd87c31eb4d2" />
+<img width="317" height="237" alt="Screenshot 2026-01-26 at 18 38 32" src="https://github.com/user-attachments/assets/777371ac-25f0-4af7-98a1-bd87c31eb4d2" />
 
 *Figure 1: scatter plot of first two principle components for PCA of embedding values.* 
 
-<img width="635" height="474" alt="Screenshot 2026-01-26 at 18 38 51" src="https://github.com/user-attachments/assets/217fed00-04a8-4acb-b68a-2b6276bfc49f" />
+<img width="317" height="237" alt="Screenshot 2026-01-26 at 18 38 51" src="https://github.com/user-attachments/assets/217fed00-04a8-4acb-b68a-2b6276bfc49f" />
 
 *Figure 2: scatter plot of first two principle components for PCA of projection head outputs.*
 
