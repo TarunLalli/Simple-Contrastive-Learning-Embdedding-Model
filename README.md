@@ -16,7 +16,9 @@ We evaluate the performance of the contrative learning model using PCA Component
 
 
 <img width="635" height="474" alt="Screenshot 2026-01-26 at 18 38 32" src="https://github.com/user-attachments/assets/777371ac-25f0-4af7-98a1-bd87c31eb4d2" />
+
 *Figure 1:* 
 
 <img width="635" height="474" alt="Screenshot 2026-01-26 at 18 38 51" src="https://github.com/user-attachments/assets/217fed00-04a8-4acb-b68a-2b6276bfc49f" />
+
 *Figure 2:*
